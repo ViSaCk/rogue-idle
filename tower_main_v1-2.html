@@ -1,0 +1,1450 @@
+Source URL: https://raw.githubusercontent.com/ViSaCk/rogue-idle/main/tower_main_v1.html
+Title: tower_main_v1.html
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>탑 너머</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0705;
+  --bg2: #140f0a;
+  --bg3: #1e1510;
+  --gold: #c9a961;
+  --gold-bright: #f0d784;
+  --gold-deep: #7a6030;
+  --crack: #d4af5e;
+  --parchment: #f4e8d0;
+  --parchment-dark: #c8b48a;
+  --rune: #6a4c93;
+  --rune-glow: #a888d4;
+  --blood: #7a2d2d;
+  --blood-bright: #c44d4d;
+  --rust: #b8763a;
+  --fn: 'Nanum Myeongjo', serif;
+  --fd: 'Cinzel', serif;
+  --fnum: 'Pretendard', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--parchment); font-family: var(--fn); }
+
+/* 배경 균열 텍스처 */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(106,76,147,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 80%, rgba(122,45,45,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(201,169,97,0.04) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ===== 앱 레이아웃 ===== */
+.app {
+  position: relative; z-index: 1;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr 300px;
+  grid-template-areas:
+    "header header"
+    "main   sidebar";
+}
+
+/* ===== 헤더 ===== */
+.header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(10,7,5,0.95) 100%);
+  border-bottom: 1px solid rgba(201,169,97,0.2);
+  position: relative;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.game-title {
+  font-family: var(--fd);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--gold-bright);
+  text-shadow: 0 0 15px rgba(201,169,97,0.35);
+}
+.game-subtitle {
+  font-size: 11px;
+  color: var(--parchment-dark);
+  letter-spacing: 0.1em;
+  font-style: italic;
+  margin-top: 1px;
+}
+
+/* 모드 탭 */
+.mode-tabs {
+  display: flex;
+  gap: 6px;
+}
+.mode-tab {
+  padding: 7px 18px;
+  background: transparent;
+  border: 1px solid rgba(201,169,97,0.25);
+  color: var(--parchment-dark);
+  font-family: var(--fn);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.mode-tab:hover { border-color: var(--gold); color: var(--parchment); }
+.mode-tab.active-luna {
+  background: rgba(106,76,147,0.2);
+  border-color: var(--rune-glow);
+  color: var(--rune-glow);
+}
+.mode-tab.active-father {
+  background: rgba(122,45,45,0.2);
+  border-color: var(--blood-bright);
+  color: var(--blood-bright);
+}
+
+/* 단계 표시 */
+.stage-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(201,169,97,0.2);
+  border-radius: 2px;
+}
+.stage-label {
+  font-size: 10px;
+  color: var(--parchment-dark);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.stage-value {
+  font-family: var(--fd);
+  font-size: 14px;
+  color: var(--gold-bright);
+  font-weight: 700;
+}
+.dev-speed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dev-speed-label {
+  font-size: 10px;
+  color: var(--parchment-dark);
+  letter-spacing: 0.1em;
+}
+.dev-speed-btn {
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid rgba(201,169,97,0.3);
+  color: var(--parchment-dark);
+  font-family: var(--fnum);
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.dev-speed-btn:hover { border-color: var(--gold); color: var(--parchment); }
+.dev-speed-btn.active { border-color: var(--gold-bright); color: var(--gold-bright); }
+
+/* ===== 메인 ===== */
+.main {
+  grid-area: main;
+  overflow-y: auto;
+  padding: 18px;
+}
+.main::-webkit-scrollbar { width: 5px; }
+.main::-webkit-scrollbar-track { background: transparent; }
+.main::-webkit-scrollbar-thumb { background: var(--gold-deep); border-radius: 2px; }
+
+/* ===== 사이드바 ===== */
+.sidebar {
+  grid-area: sidebar;
+  border-left: 1px solid rgba(201,169,97,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 사이드바 섹션 공통 */
+.sb-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(201,169,97,0.1);
+}
+.sb-title {
+  font-family: var(--fd);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* 재화 표시 */
+.resource-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.resource-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.res-label {
+  font-size: 12px;
+  color: var(--parchment-dark);
+}
+.res-value {
+  font-family: var(--fnum);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+.res-value.mana { color: var(--rune-glow); text-shadow: 0 0 8px rgba(168,136,212,0.4); }
+.res-value.fragment { color: var(--rust); }
+.res-rate {
+  font-family: var(--fnum);
+  font-size: 10px;
+  color: var(--parchment-dark);
+  margin-left: 4px;
+}
+
+/* 활성 효과 */
+.effects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.effect-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  padding: 3px 6px;
+  background: rgba(0,0,0,0.3);
+  border-left: 2px solid var(--gold-deep);
+  border-radius: 0 2px 2px 0;
+}
+.effect-name { color: var(--parchment-dark); }
+.effect-val { color: var(--gold-bright); font-family: var(--fnum); font-weight: 600; }
+
+/* 미니맵 */
+.minimap {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(201,169,97,0.15);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.minimap-node {
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.minimap-node.unlocked { background: var(--gold-bright); }
+.minimap-node.visible { background: rgba(201,169,97,0.4); }
+.minimap-node.hidden { background: rgba(255,255,255,0.08); }
+.minimap-viewport {
+  position: absolute;
+  border: 1px solid var(--rune-glow);
+  background: rgba(168,136,212,0.08);
+  pointer-events: none;
+}
+.minimap-label {
+  position: absolute;
+  bottom: 4px; right: 6px;
+  font-size: 9px;
+  color: var(--parchment-dark);
+  font-family: var(--fnum);
+  opacity: 0.6;
+}
+
+/* 일기 */
+.journal {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+}
+.messages {
+  flex: 0 0 auto;
+  height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.messages::-webkit-scrollbar { width: 3px; }
+.messages::-webkit-scrollbar-thumb { background: var(--gold-deep); }
+.sidebar-corner-art {
+  margin: 8px 16px 14px;
+  text-align: right;
+}
+.sidebar-corner-art img {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border: 1px solid rgba(201,169,97,0.25);
+  border-radius: 3px;
+  opacity: 0.9;
+  box-shadow: 0 0 10px rgba(0,0,0,0.35);
+}
+.msg {
+  padding: 7px 10px;
+  background: rgba(0,0,0,0.3);
+  border-left: 2px solid var(--gold-deep);
+  border-radius: 0 2px 2px 0;
+  animation: msgIn 0.4s ease-out;
+}
+@keyframes msgIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; } }
+.msg.luna { border-left-color: var(--rune-glow); }
+.msg.father { border-left-color: var(--gold-bright); }
+.msg.system { border-left-color: var(--blood-bright); background: rgba(122,45,45,0.1); }
+.msg.lore { border-left-color: var(--gold); font-style: italic; background: rgba(201,169,97,0.06); }
+.msg-who {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--parchment-dark);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  font-family: var(--fnum);
+}
+.msg.luna .msg-who { color: var(--rune-glow); }
+.msg.father .msg-who { color: var(--gold-bright); }
+.msg.system .msg-who { color: var(--blood-bright); }
+.msg-text { font-size: 12px; line-height: 1.55; color: var(--parchment); }
+
+/* ===== 공통 패널 ===== */
+.panel {
+  background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+  border: 1px solid rgba(201,169,97,0.18);
+  border-radius: 3px;
+  padding: 18px;
+  position: relative;
+  margin-bottom: 14px;
+}
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 4px; left: 4px; right: 4px; bottom: 4px;
+  border: 1px solid rgba(201,169,97,0.08);
+  pointer-events: none;
+  border-radius: 2px;
+}
+.panel-title {
+  font-family: var(--fd);
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(201,169,97,0.2);
+  text-align: center;
+}
+
+/* ===== N 화면 — 마법서 ===== */
+.grimoire-list { display: flex; flex-direction: column; gap: 8px; }
+.grimoire {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(106,76,147,0.2);
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.grimoire.active { border-color: var(--rune-glow); background: rgba(106,76,147,0.1); }
+.grimoire.locked { opacity: 0.45; border-color: rgba(255,255,255,0.06); }
+.g-circle { text-align: center; }
+.g-num {
+  font-family: var(--fd);
+  font-size: 12px;
+  color: var(--gold-bright);
+  font-weight: 700;
+}
+.g-stars { font-size: 8px; color: var(--gold-bright); letter-spacing: 1px; line-height: 1.25; }
+.g-name { font-size: 13px; font-weight: 700; color: var(--parchment); }
+.g-stats { font-family: var(--fnum); font-size: 11px; color: var(--parchment-dark); margin-top: 2px; }
+.g-bonus { color: var(--gold-bright); font-weight: 700; }
+.g-locked-cost { font-family: var(--fnum); font-size: 10px; color: var(--parchment-dark); font-style: italic; }
+.focus-ctrl { display: flex; gap: 4px; align-items: center; }
+.fbtn {
+  width: 26px; height: 26px;
+  background: rgba(106,76,147,0.25);
+  border: 1px solid var(--rune-glow);
+  color: var(--rune-glow);
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; border-radius: 2px;
+  transition: all 0.15s;
+}
+.fbtn:hover:not(:disabled) { background: var(--rune); box-shadow: 0 0 8px rgba(168,136,212,0.4); }
+.fbtn:disabled { opacity: 0.25; cursor: not-allowed; }
+.famt {
+  font-family: var(--fnum);
+  font-size: 15px;
+  color: var(--gold-bright);
+  min-width: 22px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* 집중력 바 */
+.focus-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.focus-label { font-size: 12px; color: var(--parchment-dark); white-space: nowrap; }
+.focus-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(201,169,97,0.2);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.focus-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--rune), var(--rune-glow));
+  transition: width 0.3s;
+}
+.focus-num {
+  font-family: var(--fnum);
+  font-size: 12px;
+  color: var(--gold-bright);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.focus-buy-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.focus-buy-btn {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(201,169,97,0.25);
+  color: var(--gold-bright);
+  padding: 7px 12px;
+  font-family: var(--fn);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.focus-buy-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(201,169,97,0.12);
+}
+.focus-buy-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* 환생 버튼 */
+.rebirth-section { text-align: center; margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(201,169,97,0.2); }
+.rebirth-btn {
+  background: linear-gradient(135deg, #1a0f05, #2a1f17);
+  border: 1px solid var(--rust);
+  color: var(--rust);
+  padding: 10px 28px;
+  font-family: var(--fn);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.rebirth-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3a1f0a, #4a2a17);
+  box-shadow: 0 0 14px rgba(184,118,58,0.4);
+}
+.rebirth-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.rebirth-hint {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.fragment-preview {
+  margin-top: 8px;
+  font-family: var(--fnum);
+  font-size: 11px;
+  color: var(--rust);
+}
+
+/* ===== R 화면 — 전투 ===== */
+.combat-arena {
+  height: 200px;
+  background: linear-gradient(180deg, rgba(122,45,45,0.08) 0%, rgba(0,0,0,0.5) 100%);
+  border: 1px solid rgba(122,45,45,0.3);
+  border-radius: 3px;
+  padding: 16px;
+  position: relative;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.arena-label { position: absolute; top: 8px; left: 14px; font-size: 11px; color: var(--parchment-dark); }
+.floor-display { position: absolute; top: 8px; right: 14px; font-family: var(--fd); font-size: 13px; color: var(--gold-bright); font-weight: 700; }
+.fighters { display: flex; justify-content: space-between; align-items: center; height: 100%; padding: 0 10px; }
+.fighter { flex: 1; text-align: center; }
+.fighter-svg { width: 80px; height: 80px; margin: 0 auto; }
+.warrior-anim { animation: warSwing 1.2s ease-in-out infinite; }
+.monster-anim { animation: monSwing 0.9s ease-in-out infinite; }
+@keyframes warSwing { 0%,100%{transform:translateX(0)} 50%{transform:translateX(14px)} }
+@keyframes monSwing { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-11px)} }
+.fighter-name { font-family: var(--fn); font-weight: 700; font-size: 12px; color: var(--gold-bright); margin: 5px 0 3px; }
+.fighter-stat { font-family: var(--fnum); font-size: 10px; color: var(--parchment-dark); }
+.hp-bar { width: 90%; height: 5px; background: rgba(0,0,0,0.5); border: 1px solid rgba(201,169,97,0.2); margin: 5px auto 0; border-radius: 1px; overflow: hidden; }
+.hp-fill { height: 100%; background: linear-gradient(90deg, var(--blood), var(--blood-bright)); transition: width 0.2s; }
+.vs { font-family: var(--fd); font-size: 20px; color: rgba(122,45,45,0.7); }
+.dmg-popup {
+  position: absolute;
+  font-family: var(--fnum);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--blood-bright);
+  pointer-events: none;
+  animation: dmgFloat 0.8s ease-out forwards;
+}
+@keyframes dmgFloat { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-28px)} }
+
+/* 작업대 버튼 */
+.workshop-btn {
+  width: 100%;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(201,169,97,0.25);
+  color: var(--gold);
+  padding: 10px;
+  font-family: var(--fn);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+.workshop-btn:hover { border-color: var(--gold); background: rgba(201,169,97,0.1); }
+
+/* ===== 모달 공통 ===== */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: linear-gradient(135deg, var(--bg2), var(--bg3));
+  border: 1px solid var(--gold);
+  border-radius: 3px;
+  padding: 28px 32px;
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 0 50px rgba(0,0,0,0.7);
+  animation: modalIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(0.88)} to{opacity:1;transform:scale(1)} }
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 5px; left: 5px; right: 5px; bottom: 5px;
+  border: 1px solid rgba(201,169,97,0.15);
+  pointer-events: none; border-radius: 2px;
+}
+.modal.danger { border-color: var(--blood-bright); }
+.modal.victory { border-color: var(--gold-bright); }
+.modal-title {
+  font-family: var(--fd);
+  font-size: 22px;
+  letter-spacing: 0.15em;
+  color: var(--gold-bright);
+  margin-bottom: 12px;
+}
+.modal.danger .modal-title { color: var(--blood-bright); }
+.modal-text { font-size: 14px; line-height: 1.7; color: var(--parchment); margin-bottom: 16px; font-style: italic; }
+.modal-stats {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(201,169,97,0.2);
+  padding: 12px;
+  border-radius: 2px;
+  margin-bottom: 16px;
+  font-family: var(--fnum);
+  font-size: 12px;
+  text-align: left;
+  line-height: 1.8;
+}
+.modal-stats strong { color: var(--gold-bright); }
+.modal-btn {
+  background: linear-gradient(135deg, var(--bg3), #3a2a1a);
+  border: 1px solid var(--gold);
+  color: var(--gold-bright);
+  padding: 11px 28px;
+  font-family: var(--fn);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.modal-btn:hover { background: rgba(201,169,97,0.2); box-shadow: 0 0 14px rgba(201,169,97,0.3); }
+.auto-close { font-size: 10px; color: var(--parchment-dark); margin-top: 8px; font-style: italic; }
+
+/* 토스트 */
+.toast {
+  position: fixed;
+  top: 70px; left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: linear-gradient(135deg, rgba(201,169,97,0.12), rgba(240,215,132,0.2));
+  border: 1px solid var(--gold-bright);
+  color: var(--gold-bright);
+  padding: 10px 22px;
+  border-radius: 2px;
+  font-family: var(--fn);
+  font-weight: 700;
+  font-size: 13px;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  backdrop-filter: blur(6px);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- 헤더 -->
+  <header class="header">
+    <div>
+      <div class="game-title">탑 너머</div>
+      <div class="game-subtitle">Beyond the Tower</div>
+    </div>
+    <div class="mode-tabs">
+      <button class="mode-tab active-luna" id="lunaTab" onclick="setMode('luna')">🌙 루나의 서재</button>
+      <button class="mode-tab" id="fatherTab" onclick="setMode('father')">⚔️ 제레마이어의 탑</button>
+    </div>
+    <div class="dev-speed">
+      <div class="dev-speed-label">DEV 배속</div>
+      <button class="dev-speed-btn active" id="speed1" onclick="setDevSpeed(1)">1x</button>
+      <button class="dev-speed-btn" id="speed5" onclick="setDevSpeed(5)">5x</button>
+      <button class="dev-speed-btn" id="speed10" onclick="setDevSpeed(10)">10x</button>
+      <button class="dev-speed-btn" id="speed100" onclick="setDevSpeed(100)">100x</button>
+      <button class="dev-speed-btn" id="focusPlusBtn" onclick="addDevFocus(1)">집중력 +1</button>
+    </div>
+  </header>
+
+  <!-- 메인 -->
+  <main class="main" id="mainArea">
+    <!-- JS로 채워짐 -->
+  </main>
+
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <!-- 재화 -->
+    <div class="sb-section">
+      <div class="sb-title">✦ 재화</div>
+      <div class="resource-grid">
+        <div class="resource-row">
+          <span class="res-label">마나</span>
+          <span><span class="res-value mana" id="manaVal">0</span><span class="res-rate" id="manaRate">+0/초</span></span>
+        </div>
+        <div class="resource-row">
+          <span class="res-label">집중력</span>
+          <span class="res-value" id="focusVal">0/5</span>
+        </div>
+        <div class="resource-row">
+          <span class="res-label">깨달음</span>
+          <span><span class="res-value fragment" id="insightVal">0</span><span class="res-rate" id="insightRate"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 미니맵 -->
+    <div class="sb-section" id="mindmapSection" style="display:none;">
+      <div class="sb-title">✦ 아이디어 지도</div>
+      <div class="minimap" id="minimap" onclick="openMindmap()">
+        <div class="minimap-label">클릭하여 열기</div>
+      </div>
+    </div>
+
+    <!-- 일기 -->
+    <div class="journal">
+      <div class="sb-title">✦ 서재의 일기</div>
+      <div class="messages" id="messages"></div>
+    </div>
+    <div class="sidebar-corner-art" id="sidebarCornerArt" style="display:none;">
+      <img id="sidebarCornerArtImg" alt="sidebar art">
+    </div>
+  </aside>
+</div>
+
+<!-- 모달: 침공/환생 결과 -->
+<div class="modal-bg" id="eventModal">
+  <div class="modal" id="eventModalContent">
+    <div class="modal-title" id="eventTitle">—</div>
+    <div class="modal-text" id="eventText"></div>
+    <div class="modal-stats" id="eventStats"></div>
+    <button class="modal-btn" id="eventBtn" onclick="closeEventModal()">계속</button>
+    <div class="auto-close" id="autoCloseHint"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  ★★★ CONFIG — 디렉터님이 수정하는 구역 ★★★
+//  아래 숫자들을 바꾸면 게임 템포가 달라집니다
+// ============================================================
+const CONFIG = {
+
+  // ── N 시스템 전역 상수 (밸런스 전달식) ─────────────────────
+  START_FOCUS: 1,           // 시작 집중력
+  FOCUS_PER_REBIRTH: 1,     // 환생마다 집중력 +1
+  STAGE1_FOCUS_LIMIT: 100,  // 1단계 총 집중력 한계
+  FOCUS_BUY_BASE_PRICE: 100, // 집중력 구매 초기 가격 (마나)
+  FOCUS_BUY_RATE: 1.23,      // 집중력 구매 증가율
+  FOCUS_COST_INITIAL_FOCUS: 5, // 비용식 기준 기본 지급량
+  FOCUS_BONUS_STEP: 10,     // 보너스 단위
+  FOCUS_BONUS_MULT: 2.0,    // 보너스 배율 (2^n)
+  C1_U_START: 1.0,          // 1서클 이해도 초기값
+  GROWTH_CONSTANT: 1.0,     // dU/dt 계수
+  SIDEBAR_IMAGE_SRC: '',    // 우측 하단 이미지 경로 (예: assets/luna.png)
+
+  // ── 깨달음 ──────────────────────────────────────────────
+  INSIGHT_RATE: 0.002,      // 집중력 1당 깨달음/초
+                            // (0.002 → 집중력5 = 0.01/초 → 2서클 약 17분)
+
+  // ── 서클 해금 임계값 (이전 서클 이해도 기준) ───────────────
+  // 인덱스 0 = 2서클 해금에 필요한 U1, ... 인덱스 6 = 8서클 해금에 필요한 U7
+  // 제공된 기준점(2/3/4/8서클)과 성장 곡선을 기준으로 중간값을 채움
+  CIRCLE_UNLOCK_THRESHOLDS: [180, 900, 3600, 7200, 14400, 28800, 43200],
+
+  // ── 환생 ────────────────────────────────────────────────
+  REBIRTH_MIN_MANA: 1000,   // 자발적 환생 최소 마나
+  REBIRTH_INSIGHT_LOG: 10,  // 깨달음 = floor(log_N(마나+1))
+                            // 마나 1000 → 깨달음 3 (log10 기준)
+
+  // ── 침공 (1단계에서는 사용 안 함) ──────────────────────
+  INVASION_VALUES: [50000, 500000, 5000000, 50000000],
+  FIRST_INVASION_TIME: 600, // 2단계 시작 후 첫 침공까지 초
+
+  // ── R 전사 기본 스탯 ─────────────────────────────────────
+  WARRIOR_START: { hp: 100, atk: 10, spd: 3000 }, // spd: ms (클수록 느림)
+  WARRIOR_DEF: 0,
+  WARRIOR_CRIT: 0,
+  WARRIOR_PEN: 0,
+
+  // ── 몬스터 (층 기반 스케일) ─────────────────────────────
+  MONSTER_HP_BASE: 20,
+  MONSTER_ATK_BASE: 3,
+  MONSTER_SPD_BASE: 1500,
+  MONSTER_SCALE: 0.18,      // 층당 성장률
+
+  // ── R 깨달음 보상 (5층마다) ──────────────────────────────
+  R_INSIGHT_INTERVAL: 5,    // N층마다 깨달음 보상
+  R_INSIGHT_BASE: 1.3,      // 보상 = floor(층^N)
+
+  // ── 1단계 → 2단계 전환 조건 ─────────────────────────────
+  STAGE2_FLOOR: 25,         // 제레마이어 N층 도달
+  STAGE2_GRIMOIRE: 8,       // N서클까지 해금
+
+  // ── 메시지 (감초) ────────────────────────────────────────
+  // 환생 횟수별 메시지
+  REBIRTH_MESSAGES: [
+    { at: 1, type: 'lore', who: '서재의 기록',
+      text: '결계가 무너졌다. 루나는 손에 무언가를 쥐고 있음을 알았다. 깨진 도자기의 파편 하나. 차갑고, 날카롭고, 어딘가 따뜻했다.' },
+    { at: 3, type: 'luna', who: '루나',
+      text: '...다시 시작해야 해요. 하지만 이번엔 달라요.' },
+    { at: 5, type: 'father', who: '제레마이어',
+      text: '(탑 어딘가에서) ...잘 버텨주는구나.' },
+    { at: 10, type: 'lore', who: '서재의 기록',
+      text: '파편이 쌓인다. 루나는 이제 그것들을 모으는 법을 안다.' },
+    { at: 20, type: 'luna', who: '루나',
+      text: '...아버지도 이런 기분이었을까. 몇 번이고 쓰러지면서.' },
+  ],
+
+  // 서클 해금 시 메시지
+  GRIMOIRE_MESSAGES: {
+    2: { type: 'luna', who: '루나', text: '이 책... 어렵지만, 이해할 수 있을 것 같아요.' },
+    3: { type: 'luna', who: '루나', text: '아버지, 저 점점 강해지고 있어요!' },
+    5: { type: 'luna', who: '루나', text: '5서클... 책장을 넘기는 손이 떨려요.' },
+    8: { type: 'lore', who: '서재의 기록', text: '8서클. 마법사의 끝이라 불리는 그 경지에, 루나가 닿았다.' },
+  },
+
+  // 층 도달 메시지
+  FLOOR_MESSAGES: {
+    10: { type: 'father', who: '제레마이어', text: '10층. 발걸음이 무거워진다.' },
+    25: { type: 'lore', who: '서재의 기록', text: '제레마이어가 25층에 닿은 날, 처음으로 인간들이 탑을 향해 걷기 시작했다.' },
+  },
+};
+// ============================================================
+//  ★★★ 여기서부터는 엔진 코드입니다 ★★★
+//  수정하지 마세요 (시스템 로직)
+// ============================================================
+
+// ── 게임 상태 ────────────────────────────────────────────────
+const G = {
+  // N
+  mana: 0,
+  insight: 0,
+  focusTotal: CONFIG.START_FOCUS,
+  focusUsed: 0,
+  insightAccum: 0,
+  grimoires: Array.from({ length: CONFIG.CIRCLE_UNLOCK_THRESHOLDS.length + 1 }, (_, i) => ({
+    circle: i + 1,
+    focus: 0,
+    understanding: i === 0 ? CONFIG.C1_U_START : 0,
+    unlocked: i === 0,
+  })),
+  rebirthCount: 0,
+
+  // R
+  floor: 1,
+  warrior: { ...CONFIG.WARRIOR_START, hp: CONFIG.WARRIOR_START.hp, def: CONFIG.WARRIOR_DEF, crit: CONFIG.WARRIOR_CRIT, pen: CONFIG.WARRIOR_PEN },
+  monster: null,
+  lastWarAtk: 0,
+  lastMonAtk: 0,
+
+  // 상태
+  stage: 1,
+  paused: false,
+  mode: 'luna',
+  devSpeed: 1,
+  simTime: 0,
+
+  // 마인드맵 (간략)
+  mindmapUnlocked: new Set(),
+};
+
+// ── 유틸 ─────────────────────────────────────────────────────
+function fmt(n) {
+  if (n < 1e3)  return Math.floor(n).toString();
+  if (n < 1e6)  return (n/1e3).toFixed(2) + 'K';
+  if (n < 1e9)  return (n/1e6).toFixed(2) + 'M';
+  if (n < 1e12) return (n/1e9).toFixed(2) + 'B';
+  if (n < 1e15) return (n/1e12).toFixed(2) + 'T';
+  return (n/1e15).toFixed(2) + 'Qa';
+}
+function fmtRate(n) {
+  if (n < 1e3) return n.toFixed(3);
+  return fmt(n);
+}
+function fmtTime(s) {
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return m + ':' + sec.toString().padStart(2,'0');
+}
+
+// ── 메시지 ──────────────────────────────────────────────────
+function addMsg(type, who, text) {
+  const box = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg ' + type;
+  el.innerHTML = `<div class="msg-who">${who}</div><div class="msg-text">${text}</div>`;
+  box.insertBefore(el, box.firstChild);
+  while (box.children.length > 30) box.removeChild(box.lastChild);
+}
+function formatCircleStars(circle) {
+  if (circle <= 4) return '✦'.repeat(circle);
+  return '✦'.repeat(4) + '<br>' + '✦'.repeat(circle - 4);
+}
+
+// ── N 생산 계산 ─────────────────────────────────────────────
+function getFocusBonus(focus) {
+  const steps = Math.floor(focus / CONFIG.FOCUS_BONUS_STEP);
+  return Math.pow(CONFIG.FOCUS_BONUS_MULT, steps);
+}
+function calcGrimProd(i) {
+  const g = G.grimoires[i];
+  if (!g.unlocked || g.focus === 0) return 0;
+  const bonus = getFocusBonus(g.focus);
+  return g.focus * bonus;
+}
+function getLowerChainMultiplier(fromCircleIndex) {
+  let mult = 1;
+  for (let i = fromCircleIndex + 1; i < G.grimoires.length; i++) {
+    const upper = G.grimoires[i];
+    if (!upper.unlocked) continue;
+    mult *= (1 + upper.understanding / 100);
+  }
+  return mult;
+}
+function getCircleEffectiveMultiplier(circleIndex) {
+  const g = G.grimoires[circleIndex];
+  if (!g || !g.unlocked) return 1;
+  return (1 + g.understanding / 100) * getLowerChainMultiplier(circleIndex);
+}
+function calcManaRate() {
+  // 1단계 기준 주 생산원: 1서클, 상위 서클 배율은 연쇄 곱으로 전파
+  return calcGrimProd(0) * getLowerChainMultiplier(0);
+}
+function calcInsightRate() {
+  return 0;
+}
+function calcFragmentOnRebirth() {
+  if (G.mana <= 0) return 0;
+  return Math.max(1, Math.floor(Math.log(G.mana + 1) / Math.log(CONFIG.REBIRTH_INSIGHT_LOG)));
+}
+function getFocusBuyCost() {
+  const exponent = G.focusTotal - CONFIG.FOCUS_COST_INITIAL_FOCUS;
+  const raw = CONFIG.FOCUS_BUY_BASE_PRICE * Math.pow(CONFIG.FOCUS_BUY_RATE, exponent);
+  return Math.max(1, Math.floor(raw));
+}
+
+// ── 집중력 조작 ──────────────────────────────────────────────
+function changeFocus(i, d) {
+  const g = G.grimoires[i];
+  if (!g.unlocked) return;
+  if (d > 0 && G.focusUsed >= G.focusTotal) return;
+  if (d < 0 && g.focus === 0) return;
+  g.focus += d;
+  G.focusUsed += d;
+  renderMain();
+  updateSidebar();
+}
+function buyFocus() {
+  if (G.focusTotal >= CONFIG.STAGE1_FOCUS_LIMIT) return;
+  const cost = getFocusBuyCost();
+  if (G.mana < cost) return;
+  G.mana -= cost;
+  G.focusTotal += 1;
+  renderMain();
+  updateSidebar();
+}
+
+// ── 환생 ────────────────────────────────────────────────────
+function doRebirth(forced) {
+  const frags = calcFragmentOnRebirth();
+  G.insight += frags;
+  G.rebirthCount++;
+  G.focusTotal = Math.min(CONFIG.STAGE1_FOCUS_LIMIT, G.focusTotal + CONFIG.FOCUS_PER_REBIRTH);
+
+  if (G.rebirthCount === 1) {
+    addMsg('lore', '서재의 기록', '금이 간 도면 위로 새로운 길이 드러난다. 아이디어 지도가 모습을 드러냈다.');
+    showToast('✦ 아이디어 지도가 해금되었습니다');
+  }
+
+  // 메시지
+  const rm = CONFIG.REBIRTH_MESSAGES.find(m => m.at === G.rebirthCount);
+  if (rm) addMsg(rm.type, rm.who, rm.text);
+
+  // 리셋
+  G.mana = 0;
+  G.insightAccum = 0;
+  G.focusUsed = 0;
+  G.grimoires.forEach((g, i) => {
+    g.focus = 0;
+    g.understanding = i === 0 ? CONFIG.C1_U_START : 0;
+    g.unlocked = (i === 0);
+  });
+
+  showToast(`✦ 회로 재설계 — 깨달음 +${frags}`);
+  renderMain();
+  updateSidebar();
+}
+
+function manualRebirth() {
+  if (G.mana < CONFIG.REBIRTH_MIN_MANA) return;
+  const frags = calcFragmentOnRebirth();
+  showEventModal(
+    false,
+    '마나 회로 재설계',
+    `루나는 마나의 흐름이 잘못되었음을 깨닫는다.\n처음부터 다시 짜야 한다. 더 나은 방식으로.`,
+    `현재 마나: ${fmt(G.mana)}\n획득 깨달음: ${frags}`,
+    () => doRebirth(false)
+  );
+}
+
+// ── R 전투 ──────────────────────────────────────────────────
+function spawnMonster() {
+  const f = G.floor;
+  const scale = 1 + f * CONFIG.MONSTER_SCALE;
+  G.monster = {
+    maxHp: Math.floor(CONFIG.MONSTER_HP_BASE * scale),
+    hp:    Math.floor(CONFIG.MONSTER_HP_BASE * scale),
+    atk:   Math.floor(CONFIG.MONSTER_ATK_BASE * scale),
+    spd:   Math.max(200, CONFIG.MONSTER_SPD_BASE - f * 10),
+  };
+  G.lastWarAtk = G.simTime;
+  G.lastMonAtk = G.simTime;
+}
+
+function combatTick(now) {
+  if (!G.monster) return;
+
+  // 전사 공격
+  if (now - G.lastWarAtk >= G.warrior.spd) {
+    const dmg = Math.max(1, G.warrior.atk + G.warrior.pen);
+    const crit = Math.random() * 100 < G.warrior.crit;
+    const finalDmg = crit ? dmg * 2 : dmg;
+    G.monster.hp -= finalDmg;
+    G.lastWarAtk = now;
+    spawnDmgPopup(finalDmg, crit, true);
+
+    if (G.monster.hp <= 0) {
+      G.floor++;
+      // R→N 깨달음 보상
+      if (G.floor % CONFIG.R_INSIGHT_INTERVAL === 0) {
+        const fm = CONFIG.FLOOR_MESSAGES[G.floor];
+        if (fm) addMsg(fm.type, fm.who, fm.text);
+      }
+      // 2단계 전환 체크
+      checkStageTransition();
+      spawnMonster();
+      updateRScreen();
+      return;
+    }
+  }
+
+  // 몬스터 공격
+  if (now - G.lastMonAtk >= G.monster.spd) {
+    const dmg = Math.max(1, G.monster.atk - G.warrior.def);
+    G.warrior.hp -= dmg;
+    G.lastMonAtk = now;
+    spawnDmgPopup(dmg, false, false);
+
+    if (G.warrior.hp <= 0) {
+      // 사망
+      G.warrior.hp = G.warrior.maxHp;
+      G.floor = 1;
+      addMsg('system', '✦ 쓰러짐 ✦', `제레마이어가 쓰러졌다. 하지만 그는 다시 일어선다.`);
+      spawnMonster();
+      updateRScreen();
+    }
+  }
+}
+
+function spawnDmgPopup(dmg, crit, isWarrior) {
+  const arena = document.querySelector('.combat-arena');
+  if (!arena) return;
+  const el = document.createElement('div');
+  el.className = 'dmg-popup';
+  el.textContent = (crit ? '★' : '') + Math.floor(dmg);
+  if (crit) el.style.color = 'var(--gold-bright)';
+  el.style.left = (isWarrior ? '70%' : '22%');
+  el.style.top = '40%';
+  arena.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+
+// ── 단계 전환 ───────────────────────────────────────────────
+function checkStageTransition() {
+  if (G.stage === 1) {
+    const unlockedCount = G.grimoires.filter(g => g.unlocked).length;
+    if (G.floor >= CONFIG.STAGE2_FLOOR && unlockedCount >= CONFIG.STAGE2_GRIMOIRE) {
+      G.stage = 2;
+      addMsg('lore', '서재의 기록', '탑의 문이 열렸다. 그리고 인간들이 오기 시작했다.');
+      addMsg('luna', '루나', '아버지... 이게 무슨 소리예요?');
+      showToast('✦ 2단계 — 침공의 시대가 시작됩니다');
+    }
+  }
+}
+
+// ── 이벤트 모달 ─────────────────────────────────────────────
+let _onModalClose = null;
+function showEventModal(isVictory, title, text, stats, onClose) {
+  G.paused = true;
+  _onModalClose = onClose;
+  const modal = document.getElementById('eventModalContent');
+  modal.className = 'modal ' + (isVictory ? 'victory' : 'danger');
+  document.getElementById('eventTitle').textContent = title;
+  document.getElementById('eventText').textContent = text;
+  document.getElementById('eventStats').innerHTML = stats.replace(/\n/g, '<br>');
+  document.getElementById('eventModal').classList.add('open');
+
+  // 자동 닫기
+  let countdown = 5;
+  const hint = document.getElementById('autoCloseHint');
+  hint.textContent = `${countdown}초 후 자동으로 닫힙니다`;
+  if (window._autoCloseTimer) clearInterval(window._autoCloseTimer);
+  window._autoCloseTimer = setInterval(() => {
+    countdown--;
+    if (countdown <= 0) { clearInterval(window._autoCloseTimer); closeEventModal(); }
+    else hint.textContent = `${countdown}초 후 자동으로 닫힙니다`;
+  }, 1000);
+}
+function closeEventModal() {
+  if (window._autoCloseTimer) clearInterval(window._autoCloseTimer);
+  document.getElementById('eventModal').classList.remove('open');
+  if (_onModalClose) { _onModalClose(); _onModalClose = null; }
+  G.paused = false;
+}
+
+// ── 토스트 ───────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── 모드 전환 ───────────────────────────────────────────────
+function setMode(mode) {
+  G.mode = mode;
+  document.getElementById('lunaTab').className = 'mode-tab ' + (mode === 'luna' ? 'active-luna' : '');
+  document.getElementById('fatherTab').className = 'mode-tab ' + (mode === 'father' ? 'active-father' : '');
+  renderMain();
+}
+function setDevSpeed(mult) {
+  G.devSpeed = mult;
+  ['speed1', 'speed5', 'speed10', 'speed100'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  const active = document.getElementById('speed' + mult);
+  if (active) active.classList.add('active');
+  showToast(`개발자 배속 ${mult}x`);
+}
+function addDevFocus(amount) {
+  const next = Math.min(CONFIG.STAGE1_FOCUS_LIMIT, G.focusTotal + amount);
+  const gained = next - G.focusTotal;
+  G.focusTotal = next;
+  renderMain();
+  updateSidebar();
+  if (gained > 0) showToast(`개발자: 집중력 +${gained}`);
+  else showToast('집중력 상한에 도달했습니다');
+}
+
+// ── 마인드맵 (스텁) ─────────────────────────────────────────
+function openMindmap() {
+  showToast('마인드맵은 다음 빌드에서 통합됩니다');
+}
+
+// ── 렌더링 ──────────────────────────────────────────────────
+function renderMain() {
+  const area = document.getElementById('mainArea');
+  if (G.mode === 'luna') renderLunaScreen(area);
+  else renderFatherScreen(area);
+}
+
+function renderLunaScreen(area) {
+  // 집중력 바
+  const focusPct = G.focusTotal > 0 ? (G.focusUsed / G.focusTotal * 100) : 0;
+
+  let grimoireHTML = G.grimoires.map((g, i) => {
+    const stars = formatCircleStars(g.circle);
+
+    let ctrl;
+    if (g.unlocked) {
+      const canPlus = G.focusUsed < G.focusTotal;
+      const canMinus = g.focus > 0;
+      ctrl = `
+        <div class="focus-ctrl">
+          <button class="fbtn" onclick="changeFocus(${i},-1)" ${canMinus?'':'disabled'}>−</button>
+          <div class="famt">${g.focus}</div>
+          <button class="fbtn" onclick="changeFocus(${i},1)" ${canPlus?'':'disabled'}>+</button>
+        </div>`;
+    } else {
+      const need = CONFIG.CIRCLE_UNLOCK_THRESHOLDS[i - 1];
+      ctrl = `<div class="g-locked-cost">${g.circle-1}서클 이해도 ${fmt(need)} 필요</div>`;
+    }
+
+    const cls = 'grimoire' + (g.focus > 0 ? ' active' : '') + (!g.unlocked ? ' locked' : '');
+    return `
+      <div class="${cls}">
+        <div class="g-circle">
+          <div class="g-num">${g.circle}서클</div>
+          <div class="g-stars">${stars}</div>
+        </div>
+        <div>
+          <div class="g-name">${g.circle}서클 마법서</div>
+          <div class="g-stats">이해도 ${fmt(g.understanding)}${i > 0 ? ` · 하위 배율 ×${getCircleEffectiveMultiplier(i).toFixed(2)}` : ''}</div>
+        </div>
+        ${ctrl}
+      </div>`;
+  }).join('');
+
+  const canRebirth = G.mana >= CONFIG.REBIRTH_MIN_MANA;
+  const fragPreview = calcFragmentOnRebirth();
+  const focusCost = getFocusBuyCost();
+  const canBuyFocus = G.focusTotal < CONFIG.STAGE1_FOCUS_LIMIT && G.mana >= focusCost;
+
+  area.innerHTML = `
+    <div class="panel">
+      <div class="panel-title">— 루나의 서재 —</div>
+      <div class="focus-bar-wrap">
+        <span class="focus-label">집중력 ${G.focusUsed}/${G.focusTotal}</span>
+        <div class="focus-bar"><div class="focus-fill" style="width:${focusPct}%"></div></div>
+        <span class="focus-num">${G.focusTotal - G.focusUsed} 남음</span>
+      </div>
+      <div class="focus-buy-row">
+        <button class="focus-buy-btn" onclick="buyFocus()" ${canBuyFocus ? '' : 'disabled'}>
+          집중력 구매 (마나 ${fmt(focusCost)})
+        </button>
+      </div>
+      <div class="grimoire-list">${grimoireHTML}</div>
+      <div class="rebirth-section">
+        <button class="rebirth-btn" onclick="manualRebirth()" ${canRebirth?'':'disabled'}>
+          마나 회로 재설계
+          <span class="rebirth-hint">${canRebirth ? '클릭하여 환생' : `마나 ${fmt(CONFIG.REBIRTH_MIN_MANA)} 필요`}</span>
+        </button>
+        ${canRebirth ? `<div class="fragment-preview">예상 깨달음: +${fragPreview} (총 ${G.insight + fragPreview})</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderFatherScreen(area) {
+  const w = G.warrior;
+  const m = G.monster;
+
+  area.innerHTML = `
+    <div class="combat-arena">
+      <div class="arena-label">자동 전투 진행 중</div>
+      <div class="floor-display">제 ${G.floor} 층</div>
+      <div class="fighters">
+        <div class="fighter">
+          <div class="fighter-svg warrior-anim">
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="40" cy="40" r="35" fill="rgba(196,77,77,0.15)"/>
+              <path d="M 28 40 L 26 70 L 34 70 L 36 44 Z" fill="#3a1f17" stroke="#7a2d2d" stroke-width="0.8"/>
+              <path d="M 52 40 L 54 70 L 46 70 L 44 44 Z" fill="#3a1f17" stroke="#7a2d2d" stroke-width="0.8"/>
+              <path d="M 29 40 Q 29 30 34 26 L 46 26 Q 51 30 51 40 L 52 58 L 28 58 Z" fill="#2a1f17" stroke="#c9a961" stroke-width="1"/>
+              <path d="M 32 18 Q 31 10 40 8 Q 49 10 48 18 L 48 26 Q 40 29 32 26 Z" fill="#1a1410"/>
+              <line x1="36" y1="18" x2="39" y2="18" stroke="#f0d784" stroke-width="1"/>
+              <line x1="41" y1="18" x2="44" y2="18" stroke="#f0d784" stroke-width="1"/>
+              <line x1="18" y1="26" x2="14" y2="62" stroke="#c9a961" stroke-width="1.2"/>
+              <line x1="10" y1="38" x2="20" y2="38" stroke="#7a2d2d" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <div class="fighter-name">제레마이어</div>
+          <div class="fighter-stat">ATK ${w.atk} · HP ${w.maxHp} · ${w.spd}ms</div>
+          <div class="hp-bar"><div class="hp-fill" id="warHpFill" style="width:${w.hp/w.maxHp*100}%"></div></div>
+        </div>
+        <div class="vs">⚔</div>
+        <div class="fighter">
+          <div class="fighter-svg monster-anim" id="monsterSvg">
+            ${renderMonsterSvg()}
+          </div>
+          <div class="fighter-name" id="monsterName">${getMonsterName()}</div>
+          <div class="fighter-stat" id="monsterStat">${m ? `ATK ${m.atk} · HP ${m.maxHp} · ${m.spd}ms` : ''}</div>
+          <div class="hp-bar"><div class="hp-fill" id="monHpFill" style="width:${m ? m.hp/m.maxHp*100 : 100}%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">— 루나의 작업대 —</div>
+      <button class="workshop-btn" onclick="showToast('작업대는 다음 빌드에서 구현됩니다')">
+        작업대 열기 (깨달음 ${fmt(G.insight)} 보유)
+      </button>
+      <div style="font-size:11px; color:var(--parchment-dark); text-align:center; font-style:italic;">
+        제레마이어의 성장을 위한 도구를 만드는 곳
+      </div>
+    </div>
+  `;
+}
+
+function renderMonsterSvg() {
+  const colors = ['#5a8a3a','#7a5a3a','#6a4a3a','#3a3a5a','#5a3a7a'];
+  const c = colors[G.floor % colors.length];
+  return `
+    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="35" fill="${c}" opacity="0.2"/>
+      <ellipse cx="40" cy="52" rx="20" ry="16" fill="${c}" stroke="#1a1410" stroke-width="1"/>
+      <ellipse cx="40" cy="34" rx="13" ry="11" fill="${c}" stroke="#1a1410" stroke-width="1"/>
+      <circle cx="35" cy="33" r="2" fill="#c44d4d"/>
+      <circle cx="45" cy="33" r="2" fill="#c44d4d"/>
+      <path d="M 35 40 Q 40 44 45 40" fill="none" stroke="#1a1410" stroke-width="1"/>
+      <line x1="33" y1="26" x2="31" y2="22" stroke="#1a1410" stroke-width="1.5"/>
+      <line x1="47" y1="26" x2="49" y2="22" stroke="#1a1410" stroke-width="1.5"/>
+    </svg>`;
+}
+
+function getMonsterName() {
+  const names = ['고블린','오크 전사','트롤','도적','마법사'];
+  return names[G.floor % names.length];
+}
+
+function updateRScreen() {
+  if (G.mode !== 'father') return;
+  const wf = document.getElementById('warHpFill');
+  const mf = document.getElementById('monHpFill');
+  if (wf) wf.style.width = (G.warrior.hp / G.warrior.maxHp * 100) + '%';
+  if (mf && G.monster) mf.style.width = (G.monster.hp / G.monster.maxHp * 100) + '%';
+}
+
+function updateSidebar() {
+  document.getElementById('manaVal').textContent = fmt(G.mana);
+  document.getElementById('manaRate').textContent = '+' + fmtRate(calcManaRate()) + '/초';
+  document.getElementById('focusVal').textContent = G.focusUsed + '/' + G.focusTotal;
+  document.getElementById('insightVal').textContent = fmt(G.insight);
+  document.getElementById('insightRate').textContent = '';
+  const mindmapSection = document.getElementById('mindmapSection');
+  if (mindmapSection) mindmapSection.style.display = G.rebirthCount >= 1 ? '' : 'none';
+  const cornerArt = document.getElementById('sidebarCornerArt');
+  const cornerArtImg = document.getElementById('sidebarCornerArtImg');
+  if (cornerArt && cornerArtImg) {
+    if (CONFIG.SIDEBAR_IMAGE_SRC) {
+      cornerArtImg.src = CONFIG.SIDEBAR_IMAGE_SRC;
+      cornerArt.style.display = '';
+    } else {
+      cornerArt.style.display = 'none';
+    }
+  }
+
+  // 미니맵 업데이트 (간단 버전)
+  updateMinimap();
+}
+
+function updateMinimap() {
+  const mm = document.getElementById('minimap');
+  // 간단 시각화: 환생 횟수에 따라 점 표시
+  const dots = mm.querySelectorAll('.minimap-node');
+  // 이미 있으면 패스 (성능)
+}
+
+// ── 메인 루프 ────────────────────────────────────────────────
+let _lastTime = Date.now();
+setInterval(() => {
+  if (G.paused) return;
+  const now = Date.now();
+  const dt = (now - _lastTime) / 1000;
+  const simDt = dt * G.devSpeed;
+  _lastTime = now;
+  G.simTime += simDt * 1000;
+
+  // N 시스템
+  for (let i = 1; i < G.grimoires.length; i++) {
+    const g = G.grimoires[i];
+    if (!g.unlocked || g.focus <= 0) continue;
+    g.understanding += g.focus * CONFIG.GROWTH_CONSTANT * simDt;
+  }
+  const manaGain = calcManaRate() * simDt;
+  G.mana += manaGain;
+  G.grimoires[0].understanding += manaGain;
+  G.insightAccum += calcInsightRate() * simDt;
+  while (G.insightAccum >= 1) {
+    G.insight++;
+    G.insightAccum--;
+  }
+
+  // 서클 해금 체크
+  let unlockedThisTick = false;
+  G.grimoires.forEach((g, i) => {
+    if (i === 0 || g.unlocked) return;
+    const prev = G.grimoires[i - 1];
+    const threshold = CONFIG.CIRCLE_UNLOCK_THRESHOLDS[i - 1];
+    if (Math.floor(prev.understanding) >= threshold) {
+      g.unlocked = true;
+      unlockedThisTick = true;
+      const gm = CONFIG.GRIMOIRE_MESSAGES[g.circle];
+      if (gm) addMsg(gm.type, gm.who, gm.text);
+      else addMsg('event', '✦ 해금 ✦', `${g.circle}서클 마법서가 해금되었습니다!`);
+      showToast(`✦ ${g.circle}서클 마법서 해금!`);
+    }
+  });
+
+  // R 전투
+  combatTick(G.simTime);
+
+  // UI 업데이트
+  if (G.mode === 'luna') {
+    if (unlockedThisTick) renderMain();
+    const rebirthBtn = document.querySelector('.rebirth-btn');
+    if (rebirthBtn) {
+      rebirthBtn.disabled = G.mana < CONFIG.REBIRTH_MIN_MANA;
+      const hint = rebirthBtn.querySelector('.rebirth-hint');
+      if (hint) hint.textContent = G.mana >= CONFIG.REBIRTH_MIN_MANA
+        ? '클릭하여 환생'
+        : `마나 ${fmt(CONFIG.REBIRTH_MIN_MANA)} 필요`;
+      const fp = document.querySelector('.fragment-preview');
+      if (fp) {
+        if (G.mana >= CONFIG.REBIRTH_MIN_MANA) {
+          fp.textContent = `예상 깨달음: +${calcFragmentOnRebirth()} (총 ${G.insight + calcFragmentOnRebirth()})`;
+          fp.style.display = '';
+        } else fp.style.display = 'none';
+      }
+    }
+    const focusBuyBtn = document.querySelector('.focus-buy-btn');
+    if (focusBuyBtn) {
+      const focusCost = getFocusBuyCost();
+      const canBuyFocus = G.focusTotal < CONFIG.STAGE1_FOCUS_LIMIT && G.mana >= focusCost;
+      focusBuyBtn.disabled = !canBuyFocus;
+      focusBuyBtn.textContent = `집중력 구매 (마나 ${fmt(focusCost)})`;
+    }
+    // 집중력 바 업데이트
+    const fill = document.querySelector('.focus-fill');
+    if (fill) fill.style.width = (G.focusUsed / G.focusTotal * 100) + '%';
+    const focusNum = document.querySelector('.focus-num');
+    if (focusNum) focusNum.textContent = (G.focusTotal - G.focusUsed) + ' 남음';
+    // 마법서 스탯 업데이트
+    document.querySelectorAll('.g-stats').forEach((el, i) => {
+      const g = G.grimoires[i];
+      if (!g || !g.unlocked) return;
+      const effectiveMult = getCircleEffectiveMultiplier(i);
+      el.innerHTML = `이해도 ${fmt(g.understanding)}${i > 0 ? ` · 하위 배율 ×${effectiveMult.toFixed(2)}` : ''}`;
+    });
+  } else {
+    updateRScreen();
+  }
+
+  updateSidebar();
+}, 50);
+
+// ── 초기화 ───────────────────────────────────────────────────
+// 초기 메시지
+addMsg('luna', '루나', '아버지... 이번엔 꼭 해낼게요.');
+addMsg('event', '✦ 시작 ✦', '서재의 일기가 펼쳐집니다.');
+
+// 몬스터 스폰
+spawnMonster();
+
+// 첫 렌더링
+renderMain();
+updateSidebar();
+
+// 주기적 분위기 메시지
+const ambientMsgs = [
+  {type:'luna', who:'루나', text:'책장을 넘기는 소리만이 서재를 채운다.'},
+  {type:'event', who:'✦', text:'창밖에서 까마귀 한 마리가 지나간다.'},
+  {type:'luna', who:'루나', text:'아버지가 가르쳐주신 것을 떠올린다.'},
+  {type:'father', who:'제레마이어', text:'(탑 어딘가에서) …한 층, 또 한 층.'},
+  {type:'event', who:'✦', text:'오래된 책 냄새가 코끝을 스친다.'},
+];
+setInterval(() => {
+  if (G.paused) return;
+  if (Math.random() < 0.3) {
+    const m = ambientMsgs[Math.floor(Math.random() * ambientMsgs.length)];
+    addMsg(m.type, m.who, m.text);
+  }
+}, 30000);
+</script>
+</body>
+</html>
