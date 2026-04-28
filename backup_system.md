@@ -322,7 +322,7 @@ R → N:
 ## 📦 파일 목록 (GitHub: ViSaCk/rogue-idle)
 
 ```
-tower_main_v3_final.html  현재 최신 게임 (루나 일러스트 포함)
+tower_main_v3.html  현재 최신 게임 (루나 일러스트 포함)
 tower_main_v2.html        이전 버전
 luna_mindmap_v2.html      마인드맵 독립 버전
 tower_sfx_samples.html    효과음 샘플 (Web Audio API)
